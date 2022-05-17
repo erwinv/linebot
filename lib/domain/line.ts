@@ -38,8 +38,6 @@ export async function handleIncomingWebhook(
   payload: WebhookRequestBody,
   groupChatMessageHandler: LineGroupChatMessageHandler
 ) {
-  console.table(payload.events)
-
   const groupChatMessages = await Promise.all(
     payload.events
       .flatMap((event) => {
@@ -49,6 +47,11 @@ export async function handleIncomingWebhook(
           event.source.type !== 'group'
         )
           return []
+
+        console.info(event.message.text)
+        if (event.message.emojis) console.table(event.message.emojis)
+        if (event.message.mention)
+          console.table(event.message.mention.mentionees)
 
         return [
           {
