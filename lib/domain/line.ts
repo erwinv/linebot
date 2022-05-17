@@ -17,11 +17,13 @@ interface MessageEvent {
 type Event = MessageEvent | Record<string, unknown>
 
 interface WebhookPayload {
+  destination: string
   events: Event[]
 }
 
 export async function handleIncomingWebhook(payload: WebhookPayload) {
-  console.table(payload)
+  console.info(payload.destination)
+  console.table(payload.events)
   // TODO format message and forward to slack
 }
 
@@ -30,7 +32,12 @@ export const middleware = (config: MiddlewareConfig): koaMiddleware => {
 
   return async (ctx, next) => {
     try {
-      const req = Object.assign({}, ctx.req, { body: ctx.request.body })
+      const req = Object.assign(
+        {},
+        ctx.req,
+        { headers: ctx.headers },
+        { body: ctx.request.rawBody }
+      )
 
       await new Promise<void>((resolve, reject) => {
         expressMid(req, ctx.res, (err) => {
