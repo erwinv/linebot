@@ -1,4 +1,14 @@
 @port = {{$dotenv PORT}}
 @baseUrl = http://localhost:{{port}}
+@slackWebhookUrl = {{$dotenv SLACK_WEBHOOK_URL}}
 
 GET {{baseUrl}}/ping
+
+###
+
+POST {{slackWebhookUrl}}
+Content-Type: application/json
+
+{
+  "text": "Hello, World!"
+}

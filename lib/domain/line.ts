@@ -20,6 +20,7 @@ export const middleware = (config: MiddlewareConfig): koaMiddleware => {
 
       return next()
     } catch (err) {
+      console.error(err)
       ctx.status = 400
     }
   }
