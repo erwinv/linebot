@@ -4,6 +4,27 @@ import {
   MiddlewareConfig,
 } from '@line/bot-sdk'
 
+interface TextMessage {
+  type: 'text'
+  text: string
+}
+
+interface MessageEvent {
+  type: 'message'
+  message: TextMessage | Record<string, unknown>
+}
+
+type Event = MessageEvent | Record<string, unknown>
+
+interface WebhookPayload {
+  events: Event[]
+}
+
+export async function handleIncomingWebhook(payload: WebhookPayload) {
+  console.table(payload)
+  // TODO format message and forward to slack
+}
+
 export const middleware = (config: MiddlewareConfig): koaMiddleware => {
   const expressMid = expressMiddleware(config)
 
