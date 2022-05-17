@@ -1,33 +1,76 @@
 import { Middleware as koaMiddleware } from 'koa'
 import {
   middleware as expressMiddleware,
-  MiddlewareConfig,
-  MessageEvent,
-  TextEventMessage,
   WebhookRequestBody,
+  Client,
 } from '@line/bot-sdk'
+import config from '../config'
 
-export type LineTextMessageHandler = (textMessage: string) => Promise<unknown>
+const client = new Client(config.line)
+
+interface LineGroupChatMessage {
+  group: {
+    name: string
+    photo: string
+  }
+  sender: {
+    name: string
+    photo: string
+  }
+  text: string
+}
+
+export type LineGroupChatMessageHandler = (
+  message: LineGroupChatMessage
+) => Promise<unknown>
 
 export async function handleIncomingWebhook(
   payload: WebhookRequestBody,
-  textMessageHandler: LineTextMessageHandler
+  groupChatMessageHandler: LineGroupChatMessageHandler
 ) {
-  console.info(payload.destination)
   console.table(payload.events)
 
-  await Promise.all(
+  const groupChatMessages = await Promise.all(
     payload.events
-      .filter((event): event is MessageEvent => event.type === 'message')
-      .map((event) => event.message)
-      .filter((message): message is TextEventMessage => message.type === 'text')
-      .map((message) => message.text)
-      .map(textMessageHandler)
+      .flatMap((event) => {
+        if (
+          event.type !== 'message' ||
+          event.message.type !== 'text' ||
+          event.source.type !== 'group'
+        )
+          return []
+
+        return [
+          {
+            source: event.source,
+            text: event.message.text,
+          },
+        ]
+      })
+      .map(async ({ source, text }) => {
+        const groupProfile = await client.getGroupSummary(source.groupId)
+        const senderProfile = source.userId
+          ? await client.getGroupMemberProfile(source.groupId, source.userId)
+          : null
+        return {
+          group: {
+            name: groupProfile.groupName,
+            photo: groupProfile.pictureUrl,
+          },
+          sender: {
+            name: senderProfile?.displayName ?? 'Anonymous user',
+            photo: senderProfile?.pictureUrl ?? '',
+          },
+          text,
+        }
+      })
   )
+
+  await Promise.all(groupChatMessages.map(groupChatMessageHandler))
 }
 
-export const middleware = (config: MiddlewareConfig): koaMiddleware => {
-  const expressMid = expressMiddleware(config)
+export const middleware = (): koaMiddleware => {
+  const expressMid = expressMiddleware(config.line)
 
   return async (ctx, next) => {
     try {
