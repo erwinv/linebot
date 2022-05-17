@@ -2,13 +2,28 @@ import { Middleware as koaMiddleware } from 'koa'
 import {
   middleware as expressMiddleware,
   MiddlewareConfig,
+  MessageEvent,
+  TextEventMessage,
   WebhookRequestBody,
 } from '@line/bot-sdk'
 
-export async function handleIncomingWebhook(payload: WebhookRequestBody) {
+export type LineTextMessageHandler = (textMessage: string) => Promise<unknown>
+
+export async function handleIncomingWebhook(
+  payload: WebhookRequestBody,
+  textMessageHandler: LineTextMessageHandler
+) {
   console.info(payload.destination)
   console.table(payload.events)
-  // TODO format message and forward to slack
+
+  await Promise.all(
+    payload.events
+      .filter((event): event is MessageEvent => event.type === 'message')
+      .map((event) => event.message)
+      .filter((message): message is TextEventMessage => message.type === 'text')
+      .map((message) => message.text)
+      .map(textMessageHandler)
+  )
 }
 
 export const middleware = (config: MiddlewareConfig): koaMiddleware => {

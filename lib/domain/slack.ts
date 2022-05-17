@@ -1,17 +1,26 @@
-const jsonMimeType = 'application/json'
+import _ from 'lodash'
+import { KnownBlock } from '@slack/types'
+import config from '../config'
 
-export async function send<T extends Record<string, unknown>, R = unknown>(
-  webhookUrl: URL,
-  payload: T
-): Promise<R> {
-  const response = await fetch(webhookUrl.href, {
+type Payload = {
+  text?: string
+  blocks?: KnownBlock[]
+}
+
+export async function send(message: string | Payload) {
+  const payload = _.isString(message) ? { text: message } : message
+
+  const response = await fetch(config.slack.webhookUrl.href, {
     method: 'POST',
     headers: {
-      'Content-Type': jsonMimeType,
-      Accept: jsonMimeType,
+      'Content-Type': 'application/json',
+      Accept: 'text/string',
     },
     body: JSON.stringify(payload),
   })
   if (!response.ok) throw new Error()
-  return response.json() as Promise<R>
+
+  return {
+    text: await response.text(),
+  }
 }

@@ -27,6 +27,7 @@
   },
   "homepage": "https://github.com/erwinv/linebot#readme",
   "devDependencies": {
+    "@slack/types": "^2.4.0",
     "@types/dotenv-safe": "^8.1.2",
     "@types/koa": "^2.13.4",
     "@types/koa__router": "^8.0.11",
