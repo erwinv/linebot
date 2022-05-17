@@ -23,7 +23,7 @@ export function line(): Middleware {
                 },
                 {
                   type: 'mrkdwn',
-                  text: `In _${group.name}_, *${sender.name}* sent:`,
+                  text: `In _*${group.name}*_, *${sender.name}* sent:`,
                 },
               ],
             },

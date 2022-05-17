@@ -14,7 +14,7 @@ export async function send(message: string | Payload) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Accept: 'text/string',
+      Accept: 'text/plain',
     },
     body: JSON.stringify(payload),
   })

@@ -1,3 +1,4 @@
+import _ from 'lodash'
 import { Middleware as koaMiddleware } from 'koa'
 import {
   middleware as expressMiddleware,
@@ -7,6 +8,15 @@ import {
 import config from '../config'
 
 const client = new Client(config.line)
+
+const getGroupSummary = _.memoize((groupId: string) =>
+  client.getGroupSummary(groupId)
+)
+const getGroupMemberProfile = _.memoize(
+  (groupId: string, userId: string) =>
+    client.getGroupMemberProfile(groupId, userId),
+  (groupId, userId) => `${groupId}:${userId}`
+)
 
 interface LineGroupChatMessage {
   group: {
@@ -48,9 +58,9 @@ export async function handleIncomingWebhook(
         ]
       })
       .map(async ({ source, text }) => {
-        const groupProfile = await client.getGroupSummary(source.groupId)
+        const groupProfile = await getGroupSummary(source.groupId)
         const senderProfile = source.userId
-          ? await client.getGroupMemberProfile(source.groupId, source.userId)
+          ? await getGroupMemberProfile(source.groupId, source.userId)
           : null
         return {
           group: {
