@@ -2,26 +2,10 @@ import { Middleware as koaMiddleware } from 'koa'
 import {
   middleware as expressMiddleware,
   MiddlewareConfig,
+  WebhookRequestBody,
 } from '@line/bot-sdk'
 
-interface TextMessage {
-  type: 'text'
-  text: string
-}
-
-interface MessageEvent {
-  type: 'message'
-  message: TextMessage | Record<string, unknown>
-}
-
-type Event = MessageEvent | Record<string, unknown>
-
-interface WebhookPayload {
-  destination: string
-  events: Event[]
-}
-
-export async function handleIncomingWebhook(payload: WebhookPayload) {
+export async function handleIncomingWebhook(payload: WebhookRequestBody) {
   console.info(payload.destination)
   console.table(payload.events)
   // TODO format message and forward to slack
