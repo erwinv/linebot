@@ -13,17 +13,17 @@ export function line(): Middleware {
               elements: [
                 {
                   type: 'image',
+                  image_url: group.photo,
+                  alt_text: group.name,
+                },
+                {
+                  type: 'image',
                   image_url: sender.photo,
                   alt_text: sender.name,
                 },
                 {
                   type: 'mrkdwn',
-                  text: `*${sender.name}* sent in _${group.name}_`,
-                },
-                {
-                  type: 'image',
-                  image_url: group.photo,
-                  alt_text: group.name,
+                  text: `In _${group.name}_, *${sender.name}* sent:`,
                 },
               ],
             },
