@@ -9,14 +9,23 @@ import config from '../config'
 
 const client = new Client(config.line)
 
-const getGroupSummary = _.memoize((groupId: string) =>
-  client.getGroupSummary(groupId)
-)
-const getGroupMemberProfile = _.memoize(
-  (groupId: string, userId: string) =>
-    client.getGroupMemberProfile(groupId, userId),
-  (groupId, userId) => `${groupId}:${userId}`
-)
+const getGroupSummary = _.memoize((groupId: string) => {
+  _.delay(() => {
+    getGroupSummary.cache.delete(groupId)
+  }, 24 * 60 * 60 * 1000)
+  return client.getGroupSummary(groupId)
+})
+
+const getGroupMemberProfileCacheKey = (groupId: string, userId: string) =>
+  `${groupId}:${userId}`
+const getGroupMemberProfile = _.memoize((groupId: string, userId: string) => {
+  _.delay(() => {
+    getGroupMemberProfile.cache.delete(
+      getGroupMemberProfileCacheKey(groupId, userId)
+    )
+  }, 1 * 60 * 60 * 1000)
+  return client.getGroupMemberProfile(groupId, userId)
+}, getGroupMemberProfileCacheKey)
 
 interface LineGroupChatMessage {
   group: {
